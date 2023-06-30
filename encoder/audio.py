@@ -49,12 +49,12 @@ def preprocess_wav(fpath_or_wav: Union[str, Path, np.ndarray],
     
     return wav
 
-
+"""
 def wav_to_mel_spectrogram(wav):
-    """
+    
     Derives a mel spectrogram ready to be used by the encoder from a preprocessed audio waveform.
     Note: this not a log-mel spectrogram.
-    """
+    
     frames = librosa.feature.melspectrogram(
         wav,
         sampling_rate,
@@ -63,7 +63,16 @@ def wav_to_mel_spectrogram(wav):
         n_mels=mel_n_channels
     )
     return frames.astype(np.float32).T
-
+"""
+def wav_to_mel_spectrogram(wav, sampling_rate=16000, mel_window_length=25, mel_window_step=10, mel_n_channels=40):
+    """
+    Derives a mel spectrogram ready to be used by the encoder from a preprocessed audio waveform.
+    Note: this is not a log-mel spectrogram.
+    """
+    n_fft = int(sampling_rate * mel_window_length / 1000)
+    hop_length = int(sampling_rate * mel_window_step / 1000)
+    mel_spectrogram = librosa.feature.melspectrogram(y=wav, sr=sampling_rate, n_fft=n_fft, hop_length=hop_length, n_mels=mel_n_channels)
+    return mel_spectrogram.astype(np.float32).T
 
 def trim_long_silences(wav):
     """
