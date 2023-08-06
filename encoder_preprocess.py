@@ -1,8 +1,7 @@
-from encoder.preprocess import preprocess_librispeech, preprocess_voxceleb1, preprocess_voxceleb2
+from encoder.preprocess import preprocess_librispeech
 from utils.argutils import print_args
 from pathlib import Path
 import argparse
-
 
 if __name__ == "__main__":
     class MyFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter):
@@ -30,26 +29,24 @@ if __name__ == "__main__":
         "Path to the output directory that will contain the mel spectrograms. If left out, "
         "defaults to <datasets_root>/SV2TTS/encoder/")
     parser.add_argument("-d", "--datasets", type=str,
-                        default="librispeech_other,voxceleb1,voxceleb2", help=\
+                        default="librispeech_other", help=\
         "Comma-separated list of the name of the datasets you want to preprocess. Only the train "
-        "set of these datasets will be used. Possible names: librispeech_other, voxceleb1, "
-        "voxceleb2.")
+        "set of these datasets will be used. Possible names: librispeech_other.")
     parser.add_argument("-s", "--skip_existing", action="store_true", help=\
         "Whether to skip existing output files with the same name. Useful if this script was "
         "interrupted.")
-    parser.add_argument("--no_trim", action="store_true", help=\
-        "Preprocess audio without trimming silences (not recommended).")
     args = parser.parse_args()
 
     # Verify webrtcvad is available
-    if not args.no_trim:
-        try:
-            import webrtcvad
-        except:
-            raise ModuleNotFoundError("Package 'webrtcvad' not found. This package enables "
-                "noise removal and is recommended. Please install and try again. If installation fails, "
-                "use --no_trim to disable this error message.")
-    del args.no_trim
+    try:
+      import webrtcvad
+    except ImportError:
+      if not args.no_trim:
+        raise ModuleNotFoundError("Package 'webrtcvad' not found. This package enables "
+            "noise removal and is recommended. Please install and try again. If installation fails, "
+            "use --no_trim to disable this error message.")
+
+
 
     # Process the arguments
     args.datasets = args.datasets.split(",")
@@ -62,8 +59,6 @@ if __name__ == "__main__":
     print_args(args, parser)
     preprocess_func = {
         "librispeech_other": preprocess_librispeech,
-        "voxceleb1": preprocess_voxceleb1,
-        "voxceleb2": preprocess_voxceleb2,
     }
     args = vars(args)
     for dataset in args.pop("datasets"):
